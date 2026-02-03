@@ -183,7 +183,6 @@ export function renderPlayer(
 
   // Facing direction indicator
   ctx.fillStyle = '#2a5a9a';
-  const dirOffset = 8;
   switch (player.facing) {
     case Direction.UP:
       ctx.fillRect(screenX + 10, screenY + 4, 12, 6);

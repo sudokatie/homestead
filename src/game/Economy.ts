@@ -1,6 +1,6 @@
 import { Player, Item, ItemType, CropType } from './types';
-import { CROP_DATA, STARTING_GOLD } from './constants';
-import { addItem, removeItem, findItem, countItem } from './Inventory';
+import { CROP_DATA } from './constants';
+import { addItem, removeItem } from './Inventory';
 
 /**
  * Check if player can afford an amount.

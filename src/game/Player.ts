@@ -1,6 +1,6 @@
-import { Player, Position, Direction, ToolType, ItemType, Tile } from './types';
+import { Player, Position, Direction, ToolType, Tile } from './types';
 import { initializeStartingInventory } from './Inventory';
-import { MAX_ENERGY, STARTING_GOLD, INVENTORY_SIZE } from './constants';
+import { MAX_ENERGY, STARTING_GOLD } from './constants';
 import { isWalkable } from './Grid';
 
 /**

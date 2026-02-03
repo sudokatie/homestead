@@ -2,18 +2,12 @@ import {
   GameState,
   GameScreen,
   MapId,
-  Player,
-  TimeState,
   Tile,
-  NPC,
   Item,
-  Direction,
-  TileType,
-  Position,
 } from './types';
 import { createPlayer, movePlayer, resetPlayerForNewDay } from './Player';
 import { createTime, advanceTime, isDayOver, startNewDay } from './Time';
-import { createFarmGrid, createTownGrid, createBeachGrid, getTile } from './Grid';
+import { createFarmGrid, createTownGrid, createBeachGrid } from './Grid';
 import { clearWatered } from './Tile';
 import { advanceCropDay } from './Crop';
 import { createEmily, resetNPCDaily } from './NPC';
@@ -167,9 +161,9 @@ export function handlePlayerMove(state: GameState, dx: number, dy: number): bool
   
   if (moved) {
     // Check for map transitions
-    const transition = checkMapTransition(state.currentMap, state.player.pos);
+    const transition = checkMapTransition(state.currentMap, state.player.pos.x, state.player.pos.y);
     if (transition) {
-      handleMapTransition(state, transition.toMap);
+      handleMapTransition(state, transition);
     }
   }
   

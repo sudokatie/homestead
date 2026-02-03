@@ -1,5 +1,5 @@
 import { Player } from './types';
-import { MAX_ENERGY, PASSOUT_ENERGY } from './constants';
+import { PASSOUT_ENERGY } from './constants';
 
 export function useEnergy(player: Player, amount: number): boolean {
   if (!hasEnergy(player, amount)) {

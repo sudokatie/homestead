@@ -1,4 +1,4 @@
-import { NPC, Item, ItemType, CropType, MapId, Position, Schedule } from './types';
+import { NPC, Item, ItemType, CropType, MapId, Position } from './types';
 import {
   EMILY_SCHEDULE,
   TALK_FRIENDSHIP,
