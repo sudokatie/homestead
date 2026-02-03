@@ -34,6 +34,7 @@ import { removeItem } from '../game/Inventory';
 import { isShopOpen } from '../game/Time';
 import { renderGame } from './Renderer';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE } from '../game/constants';
+import { saveGame, loadGame, hasSaveGame } from '../game/SaveLoad';
 
 import TitleScreen from './TitleScreen';
 import HUD from './HUD';
@@ -74,6 +75,7 @@ export default function GameCanvas() {
   const [inventory, setInventory] = useState<GameState['player']['inventory']>([]);
   const [selectedTool, setSelectedTool] = useState<ToolType>(ToolType.HOE);
   const [score, setScore] = useState({ gold: 0, cropsGrown: 0, friendship: 0, total: 0 });
+  const [hasExistingSave, setHasExistingSave] = useState(false);
 
   // Sync React state from game state
   const syncState = useCallback(() => {
@@ -106,6 +108,7 @@ export default function GameCanvas() {
     const game = createGame();
     gameRef.current = game;
     setScreen(GameScreen.TITLE);
+    setHasExistingSave(hasSaveGame());
   }, []);
 
   // Start game
@@ -113,6 +116,32 @@ export default function GameCanvas() {
     if (gameRef.current) {
       startGame(gameRef.current);
       syncState();
+    }
+  }, [syncState]);
+
+  // Load saved game
+  const handleLoad = useCallback(() => {
+    const savedState = loadGame();
+    if (savedState) {
+      gameRef.current = savedState;
+      // Make sure screen is set to PLAYING when loading
+      savedState.screen = GameScreen.PLAYING;
+      syncState();
+    }
+  }, [syncState]);
+
+  // Save game
+  const handleSave = useCallback(() => {
+    const game = gameRef.current;
+    if (game) {
+      const success = saveGame(game);
+      if (success) {
+        addMessage(game, 'Game saved!');
+      } else {
+        addMessage(game, 'Failed to save game.');
+      }
+      syncState();
+      setHasExistingSave(true);
     }
   }, [syncState]);
 
@@ -371,7 +400,7 @@ export default function GameCanvas() {
 
   // Render based on screen
   if (screen === GameScreen.TITLE) {
-    return <TitleScreen onStart={handleStart} hasExistingSave={false} />;
+    return <TitleScreen onStart={handleStart} onLoad={handleLoad} hasExistingSave={hasExistingSave} />;
   }
 
   if (screen === GameScreen.END) {
@@ -416,9 +445,7 @@ export default function GameCanvas() {
               syncState();
             }
           }}
-          onSave={() => {
-            // TODO: Implement save in Task 15
-          }}
+          onSave={handleSave}
           onQuit={() => {
             initGame();
           }}
