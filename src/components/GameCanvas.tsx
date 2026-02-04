@@ -15,6 +15,7 @@ import {
   startGame,
   updateGame,
   getCurrentGrid,
+  getCurrentMapDimensions,
   handlePlayerMove,
   togglePause,
   toggleInventory,
@@ -348,15 +349,36 @@ export default function GameCanvas() {
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = Math.floor((e.clientX - rect.left) / TILE_SIZE);
-    const y = Math.floor((e.clientY - rect.top) / TILE_SIZE);
+    const { width, height } = getCurrentMapDimensions(game);
+
+    // Calculate camera offset (same formula as Renderer)
+    const cameraX = Math.max(
+      0,
+      Math.min(
+        game.player.pos.x * TILE_SIZE - CANVAS_WIDTH / 2 + TILE_SIZE / 2,
+        width * TILE_SIZE - CANVAS_WIDTH
+      )
+    );
+    const cameraY = Math.max(
+      0,
+      Math.min(
+        game.player.pos.y * TILE_SIZE - CANVAS_HEIGHT / 2 + TILE_SIZE / 2,
+        height * TILE_SIZE - CANVAS_HEIGHT
+      )
+    );
+
+    // Convert screen coordinates to world coordinates
+    const screenX = e.clientX - rect.left;
+    const screenY = e.clientY - rect.top;
+    const worldX = Math.floor((screenX + cameraX) / TILE_SIZE);
+    const worldY = Math.floor((screenY + cameraY) / TILE_SIZE);
 
     // Use tool at clicked position if adjacent
-    const dist = Math.abs(x - game.player.pos.x) + Math.abs(y - game.player.pos.y);
+    const dist = Math.abs(worldX - game.player.pos.x) + Math.abs(worldY - game.player.pos.y);
     if (dist === 1) {
       const grid = getCurrentGrid(game);
       const tool = getSelectedTool(game.player);
-      const result = applyTool(tool, game.player, grid, x, y);
+      const result = applyTool(tool, game.player, grid, worldX, worldY);
       if (result.message) {
         addMessage(game, result.message);
       }

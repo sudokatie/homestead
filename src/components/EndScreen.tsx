@@ -18,7 +18,8 @@ export default function EndScreen({
   return (
     <div className="flex flex-col items-center justify-center h-full bg-gradient-to-b from-amber-800 to-green-900 text-white">
       <h1 className="text-5xl font-bold mb-2">Spring Has Ended!</h1>
-      <p className="text-xl mb-8 opacity-80">Here&apos;s how your farm did...</p>
+      <p className="text-xl mb-2 opacity-80">Thanks for playing!</p>
+      <p className="text-lg mb-8 opacity-60">Here&apos;s how your farm did...</p>
 
       <div className="bg-black/30 p-8 rounded-lg mb-8 min-w-[300px]">
         <div className="flex flex-col gap-4 text-lg">

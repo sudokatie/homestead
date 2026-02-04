@@ -239,22 +239,20 @@ export function renderDayNightOverlay(
   ctx: CanvasRenderingContext2D,
   hour: number
 ): void {
-  let alpha = 0;
-
-  // Dusk (6 PM - 8 PM)
+  // Dusk (6 PM - 8 PM) - orange tint, gradual
   if (hour >= 18 && hour < 20) {
-    alpha = (hour - 18) * 0.15;
+    const alpha = (hour - 18) * 0.15;
+    ctx.fillStyle = `rgba(180, 100, 50, ${alpha})`;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
-  // Night (8 PM - 2 AM)
+  // Night (8 PM - 2 AM) - blue/dark tint
   else if (hour >= 20 || hour < 2) {
-    alpha = 0.3;
+    ctx.fillStyle = 'rgba(20, 20, 50, 0.3)';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
-  // Dawn (5 AM - 6 AM)
+  // Dawn (5 AM - 6 AM) - fading blue
   else if (hour >= 5 && hour < 6) {
-    alpha = 0.3 - (hour - 5) * 0.3;
-  }
-
-  if (alpha > 0) {
+    const alpha = 0.3 - (hour - 5) * 0.3;
     ctx.fillStyle = `rgba(20, 20, 50, ${alpha})`;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }

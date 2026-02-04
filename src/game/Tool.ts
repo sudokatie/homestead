@@ -30,6 +30,9 @@ export function useTool(
     return { success: false, message: 'Not enough energy', energyCost: 0 };
   }
 
+  // Deduct energy for successful tool use
+  player.energy -= energyCost;
+
   switch (tool) {
     case ToolType.HOE:
       grid[y][x] = tillTile(tile);
@@ -43,19 +46,28 @@ export function useTool(
       return { success: true, message: 'Watered', energyCost };
 
     case ToolType.SCYTHE:
+      // Harvest mature crops
       if (tile.crop && tile.crop.stage === CropStage.HARVEST) {
         const item = harvestCrop(tile);
         if (item) {
           return { success: true, message: 'Harvested crop', energyCost };
         }
       }
-      return { success: false, message: 'Nothing to harvest', energyCost: 0 };
+      // Clear grass
+      if (tile.type === TileType.GRASS) {
+        grid[y][x] = { type: TileType.DIRT, watered: false, crop: null };
+        return { success: true, message: 'Cleared grass', energyCost };
+      }
+      // Refund energy if nothing to do
+      player.energy += energyCost;
+      return { success: false, message: 'Nothing to cut', energyCost: 0 };
 
     case ToolType.AXE:
       if (tile.type === TileType.TREE) {
         grid[y][x] = { type: TileType.GRASS, watered: false, crop: null };
         return { success: true, message: 'Chopped tree', energyCost };
       }
+      player.energy += energyCost;
       return { success: false, message: 'Nothing to chop', energyCost: 0 };
 
     case ToolType.PICKAXE:
@@ -63,9 +75,11 @@ export function useTool(
         grid[y][x] = { type: TileType.GRASS, watered: false, crop: null };
         return { success: true, message: 'Broke rock', energyCost };
       }
+      player.energy += energyCost;
       return { success: false, message: 'Nothing to break', energyCost: 0 };
 
     default:
+      player.energy += energyCost;
       return { success: false, message: 'Unknown tool', energyCost: 0 };
   }
 }
@@ -83,7 +97,9 @@ export function canUseTool(tool: ToolType, tile: Tile): boolean {
       return canWater(tile);
 
     case ToolType.SCYTHE:
-      return tile.crop !== null && tile.crop.stage === CropStage.HARVEST;
+      // Can harvest mature crops OR clear grass
+      return (tile.crop !== null && tile.crop.stage === CropStage.HARVEST) ||
+             tile.type === TileType.GRASS;
 
     case ToolType.AXE:
       return tile.type === TileType.TREE;
