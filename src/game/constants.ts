@@ -16,8 +16,9 @@ export const CANVAS_HEIGHT = 768;
 // Time
 export const DAY_START_HOUR = 6;
 export const DAY_END_HOUR = 26; // 2 AM (next day)
-export const MINUTES_PER_TICK = 10;
+export const MINUTES_PER_TICK = 1; // 10 real seconds = 10 game minutes
 export const TICKS_PER_SECOND = 1;
+export const EXHAUSTED_SPEED_MULTIPLIER = 0.5; // Move at half speed when energy is 0
 export const SHOP_OPEN_HOUR = 9;
 export const SHOP_CLOSE_HOUR = 17;
 export const SPRING_LENGTH = 28;

@@ -1,7 +1,12 @@
 import { Player, Position, Direction, ToolType, Tile } from './types';
 import { initializeStartingInventory } from './Inventory';
-import { MAX_ENERGY, STARTING_GOLD } from './constants';
+import { MAX_ENERGY, STARTING_GOLD, EXHAUSTED_SPEED_MULTIPLIER } from './constants';
 import { isWalkable } from './Grid';
+
+// Track last move time for exhausted movement slowdown
+let lastMoveTime = 0;
+const NORMAL_MOVE_COOLDOWN = 100; // ms between moves normally
+const EXHAUSTED_MOVE_COOLDOWN = NORMAL_MOVE_COOLDOWN / EXHAUSTED_SPEED_MULTIPLIER; // slower when exhausted
 
 /**
  * Create a new player with starting inventory and position.
@@ -19,8 +24,18 @@ export function createPlayer(): Player {
 }
 
 /**
+ * Check if player can move (respects exhaustion cooldown).
+ */
+export function canMove(player: Player): boolean {
+  const now = Date.now();
+  const cooldown = player.energy <= 0 ? EXHAUSTED_MOVE_COOLDOWN : NORMAL_MOVE_COOLDOWN;
+  return now - lastMoveTime >= cooldown;
+}
+
+/**
  * Move player by delta if the target position is walkable.
  * Returns true if movement succeeded.
+ * Movement is slower when exhausted (energy = 0).
  */
 export function movePlayer(
   player: Player,
@@ -30,6 +45,16 @@ export function movePlayer(
   mapWidth: number,
   mapHeight: number
 ): boolean {
+  // Check movement cooldown (slower when exhausted)
+  if (!canMove(player)) {
+    // Still update facing even if can't move yet
+    if (dx < 0) player.facing = Direction.LEFT;
+    else if (dx > 0) player.facing = Direction.RIGHT;
+    else if (dy < 0) player.facing = Direction.UP;
+    else if (dy > 0) player.facing = Direction.DOWN;
+    return false;
+  }
+
   const newX = player.pos.x + dx;
   const newY = player.pos.y + dy;
 
@@ -51,6 +76,7 @@ export function movePlayer(
   }
 
   player.pos = { x: newX, y: newY };
+  lastMoveTime = Date.now();
   return true;
 }
 

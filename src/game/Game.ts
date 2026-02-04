@@ -13,6 +13,7 @@ import { advanceCropDay } from './Crop';
 import { createEmily, resetNPCDaily } from './NPC';
 import { processShippingBin } from './Economy';
 import { checkMapTransition, getEntryPosition } from './Maps';
+import { saveGame } from './SaveLoad';
 import {
   FARM_WIDTH,
   FARM_HEIGHT,
@@ -196,6 +197,9 @@ export function triggerSleep(state: GameState): void {
   // Return player to farmhouse
   state.player.pos = { x: 10, y: 12 };
   state.currentMap = MapId.FARM;
+  
+  // Auto-save when sleeping
+  saveGame(state);
   
   state.screen = GameScreen.PLAYING;
 }
