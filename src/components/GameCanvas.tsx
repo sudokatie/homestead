@@ -7,8 +7,10 @@ import {
   MapId,
   Direction,
   CropType,
+  CropStage,
   ItemType,
   ToolType,
+  TileType,
 } from '../game/types';
 import {
   createGame,
@@ -26,12 +28,14 @@ import {
   addMessage,
   calculateScore,
   addToShipping,
+  triggerSleep,
 } from '../game/Game';
 import { useTool as applyTool } from '../game/Tool';
 import { selectTool, getSelectedTool, setFacing } from '../game/Player';
 import { talkToNPC, getNPCPosition } from '../game/NPC';
 import { buySeeds } from '../game/Economy';
-import { removeItem } from '../game/Inventory';
+import { removeItem, addItem } from '../game/Inventory';
+import { harvestCrop } from '../game/Crop';
 import { isShopOpen } from '../game/Time';
 import { renderGame } from './Renderer';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE } from '../game/constants';
@@ -172,14 +176,16 @@ export default function GameCanvas() {
     animationRef.current = requestAnimationFrame(gameLoop);
   }, [syncState]);
 
-  // Handle interaction (E key)
+  // Handle interaction (Space key) - talk, enter building, pick up, harvest with hands
   const handleInteract = useCallback(() => {
     const game = gameRef.current;
     if (!game) return;
 
-    // Check for nearby NPC
     const facingPos = getFacingPosition(game);
-    
+    const grid = getCurrentGrid(game);
+    const facingTile = grid[facingPos.y]?.[facingPos.x];
+
+    // Check for nearby NPC
     for (const npc of game.npcs) {
       const npcPos = getNPCPosition(npc, game.time.hour);
       if (npcPos && npcPos.mapId === game.currentMap) {
@@ -190,6 +196,36 @@ export default function GameCanvas() {
           syncState();
           return;
         }
+      }
+    }
+
+    // Check for harvestable crop (harvest with hands - no energy cost)
+    if (facingTile?.crop && facingTile.crop.stage === CropStage.HARVEST) {
+      const item = harvestCrop(facingTile);
+      if (item) {
+        if (addItem(game.player.inventory, item)) {
+          addMessage(game, 'Harvested crop by hand!');
+        } else {
+          addMessage(game, 'Inventory full!');
+          // Put crop back
+          facingTile.crop = { type: item.subType as CropType, stage: CropStage.HARVEST, daysGrown: 999, wateredToday: false };
+        }
+        syncState();
+        return;
+      }
+    }
+
+    // Check for farmhouse (enter building to sleep) - on farm map near house
+    if (game.currentMap === MapId.FARM) {
+      // Farmhouse is at approximately x:2-5, y:2-4 (BUILDING tiles)
+      const nearHouse = facingPos.x >= 2 && facingPos.x <= 5 && facingPos.y >= 2 && facingPos.y <= 5;
+      if (nearHouse && facingTile?.type === TileType.BUILDING) {
+        // Offer to sleep
+        openDialog(game, 'farmhouse', 'Go to bed and end the day?');
+        // Set a flag so closing dialog triggers sleep
+        (game as GameState & { pendingSleep?: boolean }).pendingSleep = true;
+        syncState();
+        return;
       }
     }
 
@@ -291,12 +327,10 @@ export default function GameCanvas() {
             selectTool(game.player, parseInt(e.key) - 1);
             syncState();
             break;
+          case ' ':
           case 'e':
           case 'E':
             handleInteract();
-            break;
-          case ' ':
-            handleToolUse();
             break;
           case 'i':
           case 'I':
@@ -325,7 +359,18 @@ export default function GameCanvas() {
         }
       } else if (game.screen === GameScreen.DIALOG) {
         if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') {
-          closeDialog(game);
+          // Check if this was a sleep confirmation dialog
+          const gameWithFlag = game as GameState & { pendingSleep?: boolean };
+          if (gameWithFlag.pendingSleep && (e.key === ' ' || e.key === 'Enter')) {
+            gameWithFlag.pendingSleep = false;
+            closeDialog(game);
+            // Trigger voluntary sleep
+            triggerSleep(game);
+            addMessage(game, 'You went to bed early.');
+          } else {
+            gameWithFlag.pendingSleep = false;
+            closeDialog(game);
+          }
           syncState();
         }
       } else if (game.screen === GameScreen.SHOP) {

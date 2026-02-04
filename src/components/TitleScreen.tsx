@@ -33,7 +33,8 @@ export default function TitleScreen({ onStart, onLoad, hasExistingSave }: TitleS
       <div className="mt-12 text-sm opacity-60">
         <p>WASD or Arrow keys to move</p>
         <p>1-5 to select tools</p>
-        <p>E to interact</p>
+        <p>Space to interact (talk, harvest, sleep)</p>
+        <p>Click to use tool on adjacent tile</p>
       </div>
     </div>
   );
