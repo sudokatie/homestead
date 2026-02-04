@@ -32,7 +32,7 @@ import {
 } from '../game/Game';
 import { useTool as applyTool } from '../game/Tool';
 import { selectTool, getSelectedTool, setFacing } from '../game/Player';
-import { talkToNPC, getNPCPosition } from '../game/NPC';
+import { talkToNPC, getNPCPosition, giveGift } from '../game/NPC';
 import { buySeeds } from '../game/Economy';
 import { removeItem, addItem } from '../game/Inventory';
 import { harvestCrop } from '../game/Crop';
@@ -48,6 +48,7 @@ import ShopPanel from './ShopPanel';
 import DialogBox from './DialogBox';
 import PauseMenu from './PauseMenu';
 import EndScreen from './EndScreen';
+import GiftPanel from './GiftPanel';
 
 // Helper function - get position player is facing
 function getFacingPosition(game: GameState) {
@@ -81,6 +82,7 @@ export default function GameCanvas() {
   const [selectedTool, setSelectedTool] = useState<ToolType>(ToolType.HOE);
   const [score, setScore] = useState({ gold: 0, cropsGrown: 0, friendship: 0, total: 0 });
   const [hasExistingSave, setHasExistingSave] = useState(false);
+  const [showGiftPanel, setShowGiftPanel] = useState(false);
 
   // Sync React state from game state
   const syncState = useCallback(() => {
@@ -328,10 +330,10 @@ export default function GameCanvas() {
             syncState();
             break;
           case ' ':
-          case 'e':
-          case 'E':
             handleInteract();
             break;
+          case 'e':
+          case 'E':
           case 'i':
           case 'I':
             toggleInventory(game);
@@ -465,6 +467,34 @@ export default function GameCanvas() {
     syncState();
   }, [syncState]);
 
+  // Gift giving handler
+  const handleGiveGift = useCallback((slotIndex: number) => {
+    const game = gameRef.current;
+    if (!game || !dialogNPC) return;
+
+    // Find the NPC
+    const npc = game.npcs.find(n => n.id === dialogNPC);
+    if (!npc) return;
+
+    // Remove item from inventory
+    const item = removeItem(game.player.inventory, slotIndex, 1);
+    if (!item) return;
+
+    // Give the gift
+    const result = giveGift(npc, item);
+    
+    // Show reaction in dialog
+    game.dialogText = result.reaction;
+    if (result.change > 0) {
+      addMessage(game, `${npc.name} liked your gift! (+${result.change} friendship)`);
+    } else if (result.change < 0) {
+      addMessage(game, `${npc.name} didn't like that... (${result.change} friendship)`);
+    }
+
+    setShowGiftPanel(false);
+    syncState();
+  }, [dialogNPC, syncState]);
+
   // Render based on screen
   if (screen === GameScreen.TITLE) {
     return <TitleScreen onStart={handleStart} onLoad={handleLoad} hasExistingSave={hasExistingSave} />;
@@ -546,17 +576,29 @@ export default function GameCanvas() {
       )}
 
       {screen === GameScreen.DIALOG && dialogText && (
-        <DialogBox
-          npcName={dialogNPC || 'Unknown'}
-          text={dialogText}
-          onClose={() => {
-            const game = gameRef.current;
-            if (game) {
-              closeDialog(game);
-              syncState();
-            }
-          }}
-        />
+        <>
+          <DialogBox
+            npcName={dialogNPC || 'Unknown'}
+            text={dialogText}
+            showGiftButton={dialogNPC !== 'farmhouse' && dialogNPC !== null}
+            onGift={() => setShowGiftPanel(true)}
+            onClose={() => {
+              const game = gameRef.current;
+              if (game) {
+                setShowGiftPanel(false);
+                closeDialog(game);
+                syncState();
+              }
+            }}
+          />
+          {showGiftPanel && (
+            <GiftPanel
+              slots={inventory}
+              onSelectGift={handleGiveGift}
+              onCancel={() => setShowGiftPanel(false)}
+            />
+          )}
+        </>
       )}
     </div>
   );

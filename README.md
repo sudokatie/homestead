@@ -22,9 +22,9 @@ No dungeon crawling. No monster fighting. Just you, your hoe, and the eternal qu
 
 - **WASD / Arrow keys** - Move
 - **1-5** - Select tool (hoe, watering can, scythe, axe, pickaxe)
-- **Space** - Use selected tool
-- **E** - Interact (talk to NPC, enter shop)
-- **I** - Inventory
+- **Click** - Use selected tool on adjacent tile
+- **Space** - Interact (talk to NPC, enter building, harvest by hand)
+- **E / I** - Open inventory
 - **Escape** - Pause menu (save here)
 
 ## Farming Tips
