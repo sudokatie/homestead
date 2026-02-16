@@ -18,6 +18,7 @@ No dungeon crawling. No monster fighting. Just you, your hoe, and the eternal qu
 - **One NPC** - Emily. She has a schedule. She likes gifts. She's the only social interaction you'll get.
 - **Save/load** - Your progress persists in localStorage
 - **Sound effects** - Retro synthesized audio for all actions
+- **Leaderboard** - Track your best farms (gold, crops, friendship)
 
 ## Controls
 
