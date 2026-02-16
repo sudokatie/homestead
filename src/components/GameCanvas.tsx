@@ -12,6 +12,7 @@ import {
   ToolType,
   TileType,
 } from '../game/types';
+import { Sound } from '../game/Sound';
 import {
   createGame,
   startGame,
@@ -195,6 +196,7 @@ export default function GameCanvas() {
         if (dist <= 1) {
           const message = talkToNPC(npc);
           openDialog(game, npc.id, message);
+          Sound.play('talk');
           syncState();
           return;
         }
@@ -207,6 +209,7 @@ export default function GameCanvas() {
       if (item) {
         if (addItem(game.player.inventory, item)) {
           addMessage(game, 'Harvested crop by hand!');
+          Sound.play('harvest');
         } else {
           addMessage(game, 'Inventory full!');
           // Put crop back
@@ -258,6 +261,18 @@ export default function GameCanvas() {
     const result = applyTool(tool, game.player, grid, facingPos.x, facingPos.y);
     if (result.message) {
       addMessage(game, result.message);
+      // Play appropriate sound based on tool
+      switch (tool) {
+        case ToolType.HOE:
+          Sound.play('hoe');
+          break;
+        case ToolType.WATERING_CAN:
+          Sound.play('water');
+          break;
+        case ToolType.SCYTHE:
+          Sound.play('harvest');
+          break;
+      }
     }
     syncState();
   }, [syncState]);
@@ -347,6 +362,7 @@ export default function GameCanvas() {
 
         if (moved) {
           handlePlayerMove(game, dx, dy);
+          Sound.play('walk');
           syncState();
         }
       } else if (game.screen === GameScreen.PAUSED) {
