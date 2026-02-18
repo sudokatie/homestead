@@ -50,6 +50,7 @@ import DialogBox from './DialogBox';
 import PauseMenu from './PauseMenu';
 import EndScreen from './EndScreen';
 import GiftPanel from './GiftPanel';
+import VirtualControls from './VirtualControls';
 
 // Helper function - get position player is facing
 function getFacingPosition(game: GameState) {
@@ -483,6 +484,46 @@ export default function GameCanvas() {
     syncState();
   }, [syncState]);
 
+  // Virtual controls: handle movement
+  const handleMove = useCallback((dx: number, dy: number) => {
+    const game = gameRef.current;
+    if (!game || game.screen !== GameScreen.PLAYING) return;
+
+    // Set facing direction
+    if (dy < 0) setFacing(game.player, Direction.UP);
+    else if (dy > 0) setFacing(game.player, Direction.DOWN);
+    else if (dx < 0) setFacing(game.player, Direction.LEFT);
+    else if (dx > 0) setFacing(game.player, Direction.RIGHT);
+
+    handlePlayerMove(game, dx, dy);
+    Sound.play('walk');
+    syncState();
+  }, [syncState]);
+
+  // Virtual controls: toggle pause
+  const handleVirtualPause = useCallback(() => {
+    const game = gameRef.current;
+    if (!game) return;
+    togglePause(game);
+    syncState();
+  }, [syncState]);
+
+  // Virtual controls: toggle inventory
+  const handleVirtualInventory = useCallback(() => {
+    const game = gameRef.current;
+    if (!game) return;
+    toggleInventory(game);
+    syncState();
+  }, [syncState]);
+
+  // Virtual controls: select tool
+  const handleVirtualToolSelect = useCallback((index: number) => {
+    const game = gameRef.current;
+    if (!game) return;
+    selectTool(game.player, index);
+    syncState();
+  }, [syncState]);
+
   // Gift giving handler
   const handleGiveGift = useCallback((slotIndex: number) => {
     const game = gameRef.current;
@@ -615,6 +656,18 @@ export default function GameCanvas() {
             />
           )}
         </>
+      )}
+
+      {screen === GameScreen.PLAYING && (
+        <VirtualControls
+          paused={false}
+          selectedTool={gameRef.current?.player.selectedToolIndex ?? 0}
+          onMove={handleMove}
+          onPause={handleVirtualPause}
+          onInteract={handleInteract}
+          onInventory={handleVirtualInventory}
+          onToolSelect={handleVirtualToolSelect}
+        />
       )}
     </div>
   );
