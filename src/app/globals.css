@@ -25,3 +25,34 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Responsive game layout */
+@media (max-width: 768px) {
+  /* Make canvas responsive */
+  canvas {
+    max-width: 100%;
+    height: auto !important;
+  }
+  
+  /* Compact HUD on mobile */
+  .flex.items-center.justify-between {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  
+  /* Smaller text */
+  .text-sm, .text-xs {
+    font-size: 0.65rem;
+  }
+  
+  /* Smaller buttons */
+  button {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  /* Leave room for virtual controls at bottom */
+  main {
+    padding-bottom: 5rem !important;
+  }
+}
