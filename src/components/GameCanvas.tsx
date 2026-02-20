@@ -13,6 +13,7 @@ import {
   TileType,
 } from '../game/types';
 import { Sound } from '../game/Sound';
+import { Music } from '../game/Music';
 import {
   createGame,
   startGame,
@@ -296,6 +297,25 @@ export default function GameCanvas() {
   useEffect(() => {
     initGame();
   }, [initGame]);
+
+  // Switch music track based on game screen
+  useEffect(() => {
+    switch (screen) {
+      case GameScreen.TITLE:
+      case GameScreen.PAUSED:
+      case GameScreen.INVENTORY:
+      case GameScreen.SHOP:
+        Music.play('menu');
+        break;
+      case GameScreen.PLAYING:
+      case GameScreen.DIALOG:
+        Music.play('gameplay');
+        break;
+      case GameScreen.END:
+        Music.play('victory');
+        break;
+    }
+  }, [screen]);
 
   // Handle keyboard input
   useEffect(() => {
